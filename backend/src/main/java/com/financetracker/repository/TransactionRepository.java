@@ -1,28 +1,47 @@
 package com.financetracker.repository;
 
-import com.financetracker.entity.Transaction;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
+import com.financetracker.entity.Transaction;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
-    @Query("""
+    // @Query("""
+    //     SELECT t FROM Transaction t
+    //     JOIN t.account a
+    //     WHERE a.user.id = :userId
+    //     AND (:type IS NULL OR t.type = :type)
+    //     AND (:category IS NULL OR t.category = :category)
+    //     AND (:accountId IS NULL OR a.id = :accountId)
+    //     AND (cast(:from as date) IS NULL OR t.transactionDate >= :from)
+    //     AND (cast(:to as date) IS NULL OR t.transactionDate <= :to)
+    //     ORDER BY t.transactionDate DESC, t.createdAt DESC
+    // """)
+   @Query("""
         SELECT t FROM Transaction t
-        JOIN t.account a
+        JOIN FETCH t.account a
         WHERE a.user.id = :userId
         AND (:type IS NULL OR t.type = :type)
         AND (:category IS NULL OR t.category = :category)
         AND (:accountId IS NULL OR a.id = :accountId)
-        AND (cast(:from as date) IS NULL OR t.transactionDate >= :from)
-        AND (cast(:to as date) IS NULL OR t.transactionDate <= :to)
-        ORDER BY t.transactionDate DESC, t.createdAt DESC
+        AND (cast(:from as date) IS NULL
+             OR t.transactionDate >= :from)
+        AND (cast(:to as date) IS NULL
+             OR t.transactionDate <= :to)
+        AND (cast(:keyword as string) IS NULL
+             OR LOWER(t.description) LIKE LOWER(CONCAT('%', cast(:keyword as string), '%'))
+             OR LOWER(t.category) LIKE LOWER(CONCAT('%', cast(:keyword as string), '%'))
+             OR LOWER(a.name) LIKE LOWER(CONCAT('%', cast(:keyword as string), '%')))
+        AND (:minAmount IS NULL OR t.amount >= :minAmount)
+        AND (:maxAmount IS NULL OR t.amount <= :maxAmount)
     """)
     Page<Transaction> findByFilters(
         @Param("userId") UUID userId,
@@ -31,6 +50,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
         @Param("accountId") UUID accountId,
         @Param("from") LocalDate from,
         @Param("to") LocalDate to,
+        @Param("keyword") String keyword,
+        @Param("minAmount") BigDecimal minAmount,
+        @Param("maxAmount") BigDecimal maxAmount,
         Pageable pageable
     );
 

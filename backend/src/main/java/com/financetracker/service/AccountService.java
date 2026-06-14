@@ -6,6 +6,8 @@ import com.financetracker.entity.Account;
 import com.financetracker.entity.User;
 import com.financetracker.repository.AccountRepository;
 import com.financetracker.repository.UserRepository;
+import com.financetracker.exception.ResourceNotFoundException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -66,12 +68,27 @@ public class AccountService {
     }
 
     // DELETE soft delete account
-    public void deleteAccount(UUID accountId) {
-        User user = getCurrentUser();
-        Account account = accountRepository
-            .findByIdAndUserId(accountId, user.getId())
-            .orElseThrow(() -> new RuntimeException("Account not found"));
-        account.setActive(false);
-        accountRepository.save(account);
-    }
+    // public void deleteAccount(UUID accountId) {
+    //     User user = getCurrentUser();
+    //     Account account = accountRepository
+    //         .findByIdAndUserId(accountId, user.getId())
+    //         .orElseThrow(() -> new RuntimeException("Account not found"));
+    //     account.setActive(false);
+    //     accountRepository.save(account);
+    // }
+
+    // ── Private helper — reused across methods ──────────────────
+private Account getAccountForUser(UUID accountId, UUID userId) {
+    return accountRepository.findByIdAndUserId(accountId, userId)
+        .orElseThrow(() -> new ResourceNotFoundException(
+            "Account", accountId.toString()));
+}
+
+// DELETE soft delete account
+public void deleteAccount(UUID accountId) {
+    User user = getCurrentUser();
+    Account account = getAccountForUser(accountId, user.getId()); // ← now uses helper
+    account.setActive(false);
+    accountRepository.save(account);
+}
 }

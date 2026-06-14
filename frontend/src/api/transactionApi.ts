@@ -40,6 +40,22 @@ export interface MonthlySummary {
   savings: number;
 }
 
+// ← Updated with new filter params
+export interface TransactionFilters {
+  page?: number;
+  size?: number;
+  type?: string;
+  category?: string;
+  accountId?: string;
+  from?: string;
+  to?: string;
+  keyword?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  sortBy?: string;
+  sortDir?: string;
+}
+
 export const getTransactionsApi = (params?: Record<string, string | number>) =>
   axiosClient.get<PageResponse<Transaction>>("/transactions", { params });
 
@@ -71,3 +87,23 @@ export const getSpendingByCategoryApi = (from?: string, to?: string) =>
 
 export const getMonthlyTrendApi = () =>
   axiosClient.get<MonthlyTrend[]>("/transactions/monthly-trend");
+
+export const exportToCsvApi = (from?: string, to?: string) => {
+  const params = new URLSearchParams();
+  if (from) params.append("from", from);
+  if (to) params.append("to", to);
+  const query = params.toString();
+  return axiosClient.get(`/export/csv${query ? "?" + query : ""}`, {
+    responseType: "blob",
+  });
+};
+
+export const exportToPdfApi = (from?: string, to?: string) => {
+  const params = new URLSearchParams();
+  if (from) params.append("from", from);
+  if (to) params.append("to", to);
+  const query = params.toString();
+  return axiosClient.get(`/export/pdf${query ? "?" + query : ""}`, {
+    responseType: "blob",
+  });
+};

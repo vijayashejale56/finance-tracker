@@ -20,6 +20,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.financetracker.security.RateLimitFilter; // Import the new filter
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,22 +32,49 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final UserDetailsService userDetailsService;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(s -> s
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtFilter,
-                UsernamePasswordAuthenticationFilter.class)
-            .build();
-    }
+    //     @Autowired(required = false)
+    // private RateLimitFilter rateLimitFilter;
+
+    // Add this field
+private final RateLimitFilter rateLimitFilter;
+
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return http
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(s -> s
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/v1/auth/**").permitAll()
+            .requestMatchers("/swagger-ui/**").permitAll()
+            .requestMatchers("/swagger-ui.html").permitAll()
+            .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
+            .anyRequest().authenticated()
+        )
+        .authenticationProvider(authenticationProvider())
+        .addFilterBefore(jwtFilter,
+            UsernamePasswordAuthenticationFilter.class)
+        .build();
+}
+
+// @Bean
+    // public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    //     return http
+    //         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+    //         .csrf(AbstractHttpConfigurer::disable)
+    //         .sessionManagement(s -> s
+    //             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    //         .authorizeHttpRequests(auth -> auth
+    //             .requestMatchers("/api/v1/auth/**").permitAll()
+    //             .anyRequest().authenticated()
+    //         )
+    //         .authenticationProvider(authenticationProvider())
+    //         .addFilterBefore(jwtFilter,
+    //             UsernamePasswordAuthenticationFilter.class)
+    //         .build();
+    // }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

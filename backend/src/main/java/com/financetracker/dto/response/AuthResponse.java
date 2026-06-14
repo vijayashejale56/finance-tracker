@@ -1,7 +1,8 @@
 package com.financetracker.dto.response;
 
 public record AuthResponse(
-    String token,
+    String accessToken,
+    String refreshToken,
     String email,
     String fullName
 ) {}

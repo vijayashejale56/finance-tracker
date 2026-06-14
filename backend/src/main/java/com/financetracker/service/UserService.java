@@ -6,6 +6,8 @@ import com.financetracker.entity.User;
 import com.financetracker.repository.AccountRepository;
 import com.financetracker.repository.TransactionRepository;
 import com.financetracker.repository.UserRepository;
+import com.financetracker.exception.BadRequestException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,24 +54,42 @@ public class UserService {
         return toResponse(userRepository.save(user));
     }
 
-    // PUT change password
+    // // PUT change password
+    // public void changePassword(String currentPassword, String newPassword) {
+    //     User user = getCurrentUser();
+
+    //     // Verify current password is correct
+    //     if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+    //         throw new RuntimeException("Current password is incorrect");
+    //     }
+
+    //     // Validate new password length
+    //     if (newPassword.length() < 8) {
+    //         throw new RuntimeException(
+    //             "New password must be at least 8 characters");
+    //     }
+
+    //     user.setPasswordHash(passwordEncoder.encode(newPassword));
+    //     userRepository.save(user);
+    // }
+
+
     public void changePassword(String currentPassword, String newPassword) {
-        User user = getCurrentUser();
-
-        // Verify current password is correct
-        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-            throw new RuntimeException("Current password is incorrect");
-        }
-
-        // Validate new password length
-        if (newPassword.length() < 8) {
-            throw new RuntimeException(
-                "New password must be at least 8 characters");
-        }
-
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+    User user = getCurrentUser();
+    if (!passwordEncoder.matches(
+            currentPassword, user.getPasswordHash())) {
+        throw new BadRequestException(
+            "Current password is incorrect",
+            "INVALID_CURRENT_PASSWORD");
     }
+    if (newPassword.length() < 8) {
+        throw new BadRequestException(
+            "New password must be at least 8 characters",
+            "PASSWORD_TOO_SHORT");
+    }
+    user.setPasswordHash(passwordEncoder.encode(newPassword));
+    userRepository.save(user);
+}
 
     // GET user stats for profile page
     public java.util.Map<String, Object> getUserStats() {

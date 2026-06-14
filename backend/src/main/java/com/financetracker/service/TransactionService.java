@@ -9,6 +9,8 @@ import com.financetracker.entity.User;
 import com.financetracker.repository.AccountRepository;
 import com.financetracker.repository.TransactionRepository;
 import com.financetracker.repository.UserRepository;
+import com.financetracker.exception.ResourceNotFoundException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +29,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class TransactionService {
 
@@ -61,11 +64,40 @@ public class TransactionService {
     public PageResponse<TransactionResponse> getTransactions(
             int page, int size,
             String type, String category,
-            UUID accountId, LocalDate from, LocalDate to) {
+            UUID accountId, LocalDate from, LocalDate to,
+            String keyword, BigDecimal minAmount, BigDecimal maxAmount,
+            String sortBy, String sortDir) {
 
         User user = getCurrentUser();
+
+         // Build sort direction
+        org.springframework.data.domain.Sort.Direction direction =
+            sortDir.equalsIgnoreCase("asc")
+                ? org.springframework.data.domain.Sort.Direction.ASC
+                : org.springframework.data.domain.Sort.Direction.DESC;
+
+        // Map sortBy parameter to entity field name
+        String sortField = switch (sortBy) {
+            case "amount" -> "amount";
+            case "category" -> "category";
+            case "description" -> "description";
+            default -> "transactionDate";
+        };
+
+        // Build pageable with sort
+    org.springframework.data.domain.Pageable pageable =
+        org.springframework.data.domain.PageRequest.of(
+            page, size,
+            org.springframework.data.domain.Sort.by(
+                direction, sortField));
+
+    // Clean keyword — empty string becomes null
+    String cleanKeyword = (keyword != null &&
+        !keyword.trim().isEmpty())
+        ? keyword.trim() : null;
+
         Page<Transaction> result = transactionRepository.findByFilters(
-            user.getId(), type, category, accountId, from, to,
+            user.getId(), type, category, accountId, from, to, cleanKeyword, minAmount, maxAmount,
             PageRequest.of(page, size)
         );
 
@@ -84,9 +116,14 @@ public class TransactionService {
     public TransactionResponse createTransaction(TransactionRequest request) {
         User user = getCurrentUser();
 
+        // Account account = accountRepository
+        //     .findByIdAndUserId(request.accountId(), user.getId())
+        //     .orElseThrow(() -> new RuntimeException("Account not found"));
+
         Account account = accountRepository
-            .findByIdAndUserId(request.accountId(), user.getId())
-            .orElseThrow(() -> new RuntimeException("Account not found"));
+    .findByIdAndUserId(request.accountId(), user.getId())
+    .orElseThrow(() -> new ResourceNotFoundException(
+        "Account", request.accountId().toString()));
 
         // Update account balance based on transaction type
         if (request.type().equals("income")) {
@@ -176,7 +213,8 @@ public class TransactionService {
         // Get all expense transactions in range
         List<Transaction> expenses = transactionRepository
             .findByFilters(user.getId(), "expense", null, null,
-                finalFrom, finalTo, PageRequest.of(0, 1000))
+                finalFrom, finalTo, null, null, null,
+                PageRequest.of(0, 1000))
             .getContent();
 
         // Group by category and sum amounts

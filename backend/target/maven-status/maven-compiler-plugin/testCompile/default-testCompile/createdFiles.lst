@@ -1,1 +1,13 @@
-com\example\demo\DemoApplicationTests.class
+com\financetracker\service\AccountServiceTest$GetAllAccountsTests.class
+com\financetracker\BaseIntegrationTest.class
+com\financetracker\config\TestSchedulingConfig.class
+com\financetracker\service\AuthServiceTest.class
+com\financetracker\service\AccountServiceTest.class
+com\financetracker\service\TransactionServiceTest$CreateTransactionTests.class
+com\financetracker\service\AuthServiceTest$LoginTests.class
+com\financetracker\service\AccountServiceTest$CreateAccountTests.class
+com\financetracker\service\TransactionServiceTest.class
+com\financetracker\integration\AuthControllerIntegrationTest.class
+com\financetracker\service\AccountServiceTest$DeleteAccountTests.class
+com\financetracker\helper\TestDataFactory.class
+com\financetracker\service\AuthServiceTest$RegisterTests.class

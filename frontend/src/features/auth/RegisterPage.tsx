@@ -10,20 +10,38 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setLoading(true)
+  //   setError('')
+  //   try {
+  //     const res = await registerApi(form)
+  //     login(res.data.token, res.data.email, res.data.fullName)
+  //     navigate('/dashboard')
+  //   } catch {
+  //     setError('Registration failed. Email may already be in use.')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    try {
-      const res = await registerApi(form)
-      login(res.data.token, res.data.email, res.data.fullName)
-      navigate('/dashboard')
-    } catch {
-      setError('Registration failed. Email may already be in use.')
-    } finally {
-      setLoading(false)
-    }
+  e.preventDefault()
+  setLoading(true)
+  setError('')
+  try {
+    const res = await registerApi(form)
+    const { accessToken, refreshToken, email, fullName } = res.data.data
+    login(accessToken, refreshToken, email, fullName)
+    navigate('/dashboard', { replace: true })
+  } catch (err: any) {
+    const message = err.response?.data?.message ||
+      'Registration failed. Email may already be in use.'
+    setError(message)
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import ToastContainer from './Toast'
+import { logoutApi } from '../../api/authApi'
 
 const navItems = [
   { path: '/dashboard',    label: 'Dashboard',    icon: '🏠' },
   { path: '/accounts',     label: 'Accounts',     icon: '🏦' },
   { path: '/transactions', label: 'Transactions', icon: '💸' },
   { path: '/analytics',    label: 'Analytics',    icon: '📊' },
+  { path: '/budget',       label: 'Budget',       icon: '💰' },
   { path: '/profile',      label: 'Profile',      icon: '👤' },
+  { path: '/goals',        label: 'Goals',        icon: '🎯' },
+  { path: '/recurring', label: 'Recurring', icon: '🔄' },
 ]
 
 export default function Layout() {
@@ -34,10 +38,24 @@ export default function Layout() {
     setDark(prev => !prev)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  try {
+    const refreshToken = localStorage.getItem('refreshToken')
+    if (refreshToken) {
+      await logoutApi(refreshToken)
+    }
+  } catch {
+    // Ignore logout errors
+  } finally {
     logout()
     navigate('/login')
   }
+}
+
+  // const handleLogout = () => {
+  //   logout()
+  //   navigate('/login')
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">

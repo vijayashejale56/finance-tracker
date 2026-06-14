@@ -11,21 +11,38 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    try {
-      const res = await loginApi(form)
-      // Save token first
-      login(res.data.token, res.data.email, res.data.fullName)
-      // Then navigate
-      navigate('/dashboard', { replace: true })
-    } catch {
-      setError('Invalid email or password')
-    } finally {
-      setLoading(false)
-    }
+  e.preventDefault()
+  setLoading(true)
+  setError('')
+  try {
+    const res = await loginApi(form)
+    const { accessToken, refreshToken, email, fullName } = res.data.data
+    login(accessToken, refreshToken, email, fullName)
+    navigate('/dashboard', { replace: true })
+  } catch (err: any) {
+    const message = err.response?.data?.message || 'Invalid email or password'
+    setError(message)
+  } finally {
+    setLoading(false)
   }
+}
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setLoading(true)
+  //   setError('')
+  //   try {
+  //     const res = await loginApi(form)
+  //     // Save token first
+  //     login(res.data.token, res.data.email, res.data.fullName)
+  //     // Then navigate
+  //     navigate('/dashboard', { replace: true })
+  //   } catch {
+  //     setError('Invalid email or password')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  LineChart, Line, Area, AreaChart
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Area, AreaChart
 } from 'recharts'
 import {
   getSpendingByCategoryApi,

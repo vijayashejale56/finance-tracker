@@ -40,7 +40,7 @@ export default function DashboardPage() {
   const { fullName } = useAuthStore()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [loading, setLoading] = useState(true)
-  const [summary, setSummary] = useState({
+  const [_summary, setSummary] = useState({
     income: 0, expense: 0, savings: 0
   })
 

@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: finance-tracker-db
+    environment:
+      POSTGRES_DB: financetracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"  # 5433 on host to avoid conflict with local postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: finance-tracker-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/financetracker
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      JWT_SECRET: dockerLocalSecretKeyThatIsAtLeast64CharactersLongForHMACSHA512
+      JWT_ACCESS_EXPIRY: 900000
+      JWT_REFRESH_EXPIRY: 604800000
+      CORS_ORIGINS: http://localhost:5173
+      APP_MAIL_ENABLED: "false"
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: test@gmail.com
+      MAIL_PASSWORD: testpassword
+      APP_JWT_EXPIRATION_MS: 86400000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

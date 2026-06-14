@@ -7,12 +7,12 @@ import {
   type UserProfile,
   type UserStats
 } from '../../api/userApi'
-import { useAuthStore } from '../../store/authStore'
+// import { useAuthStore } from '../../store/authStore'
 
 const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD']
 
 export default function ProfilePage() {
-  const { fullName: storeFullName } = useAuthStore()
+  // const { fullName: storeFullName } = useAuthStore()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
