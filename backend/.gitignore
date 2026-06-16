@@ -5,4 +5,4 @@
 .env.production
 
 # Production properties — contains secrets
-application-prod.properties
+#application-prod.properties
