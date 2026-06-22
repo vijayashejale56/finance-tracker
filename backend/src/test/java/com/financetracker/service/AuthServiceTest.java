@@ -41,6 +41,7 @@ class AuthServiceTest {
     @Mock private JwtUtil jwtUtil;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private RefreshTokenService refreshTokenService;
+    @Mock private EmailService emailService;
 
     // The real class we are testing
     @InjectMocks private AuthService authService;
