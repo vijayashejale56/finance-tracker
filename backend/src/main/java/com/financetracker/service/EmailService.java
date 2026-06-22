@@ -15,16 +15,31 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
-    private final TemplateEngine templateEngine;
+    // private final JavaMailSender mailSender;
+    // private final TemplateEngine templateEngine;
 
-    @Value("${app.mail.from}")
+    // @Value("${app.mail.from}")
+    // private String fromEmail;
+
+    // @Value("${app.mail.enabled:true}")
+    // private boolean mailEnabled;
+
+    // required = false means:
+    // if no JavaMailSender bean exists → set to null
+    // instead of crashing on startup
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
+
+    @Autowired(required = false)
+    private TemplateEngine templateEngine;
+
+    @Value("${app.mail.from:noreply@financetracker.com}")
     private String fromEmail;
 
-    @Value("${app.mail.enabled:true}")
+    @Value("${app.mail.enabled:false}")
     private boolean mailEnabled;
 
     // @Async means this runs in background thread
