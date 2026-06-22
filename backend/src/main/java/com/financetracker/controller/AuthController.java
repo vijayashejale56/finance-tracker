@@ -102,12 +102,12 @@ public class AuthController {
             ApiResponse.success(null, "Logged out successfully"));
     }
 
-    @GetMapping("/test-email")
-public ResponseEntity<String> testEmail() {
-    emailService.sendWelcomeEmail(
-        "vijayashejale1999@gmail.com",
-        "Test User");
-    return ResponseEntity.ok("Email sent!");
-}
+//    @GetMapping("/test-email")
+//public ResponseEntity<String> testEmail() {
+//    emailService.sendWelcomeEmail(
+//        "vijayashejale1999@gmail.com",
+//        "Test User");
+//    return ResponseEntity.ok("Email sent!");
+//}
 }
 

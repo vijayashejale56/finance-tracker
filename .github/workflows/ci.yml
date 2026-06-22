@@ -1,0 +1,81 @@
+name: CI/CD Pipeline
+
+# Trigger on every push to main branch
+# Also triggers on pull requests to main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  # ─── Job 1: Run Tests ─────────────────────────────
+  # Runs on every push — tests must pass before deploy
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 — Check out your code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2 — Set up Java 21
+      # Same version as your local machine and Docker
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'corretto'  # Amazon Corretto — same as Dockerfile
+          cache: maven              # Cache dependencies — speeds up future runs
+
+      # Step 3 — Run all tests
+      # Uses H2 in-memory database (test profile)
+      # No real database needed — tests are self-contained
+      - name: Run tests
+        working-directory: backend
+        run: mvn test -B
+        env:
+          # These are needed by tests even though
+          # H2 is used — some @Value fields require them
+          SPRING_PROFILES_ACTIVE: test
+
+      # Step 4 — Upload test results
+      # Even if tests fail, upload the report
+      # So you can see WHICH test failed in GitHub UI
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()  # Run even if tests fail
+        with:
+          name: test-results
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+  # ─── Job 2: Deploy to Render ──────────────────────
+  # Only runs if test job passed
+  # Only runs on push to main (not on pull requests)
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: test  # ← CRITICAL: only deploy if tests pass
+    if: github.ref == 'refs/heads/main' &&
+        github.event_name == 'push'
+
+    steps:
+      # Trigger Render to redeploy
+      # Render pulls latest code from GitHub
+      # Rebuilds Docker image and restarts service
+      - name: Deploy to Render
+        run: |
+          curl -X POST \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": false}'
+
+      # Wait and check if deployment succeeded
+      - name: Verify deployment
+        run: |
+          echo "Deployment triggered successfully!"
+          echo "Check status at: https://dashboard.render.com"
